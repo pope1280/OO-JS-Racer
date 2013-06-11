@@ -1,13 +1,28 @@
+// Player related functions //
+
 function Player(name, track) {
   this.name     = name;
   this.track    = track;
+  this.domTrack = $(track);
   this.position = 1;
 }
 
-Player.prototype.advance = function(player) {
+Player.prototype.advance = function() {
+  this.position += 1;
 
+  this.domTrack.find("td").removeClass("active");
+  this.domTrack.find("td:nth-child("+this.position+")").addClass("active");
 };
 
+
+Player.prototype.toJson = function() {
+  return {
+    name: this.name
+  };
+};
+
+
+// Game related functions //
 
 function Game(player1, player2) {
   this.player1     = player1;
@@ -15,36 +30,78 @@ function Game(player1, player2) {
   this.trackLength = 20;
 }
 
-Game.prototype.advance = function(player) {
-  if (this.winner(player) === true) {
-    // $(document).off("keyup");   <---prevents further keypress? verify once reay to test this function
+Game.prototype.winner = function() {
+  if (this.player1.position === this.trackLength) {
+    return this.player1;
+  } else if (this.player2.position === this.trackLength) {
+    return this.player2;
   }
-  else {
-    player.advance(player);
+  return false;
+};
+
+
+Game.prototype.finish = function() {
+
+  this.gameTime = ( new Date().getTime() - this.startTime ) / 1000;
+
+
+  if (this.winner().name === this.player1.name) {
+    this.winner = this.player1;
+    this.loser = this.player2;
+  } else {
+    this.winner = this.player2;
+    this.loser = this.player1;
+  }
+
+  $(this).trigger('gameOver');
+
+  alert(this.winner.name + ' wins!!  Race time: '+this.gameTime+' seconds');
+
+  $.ajax({
+    url: '/endgame',
+    type: 'post',
+    dataType: 'json',
+    data: this.toJson()
+  }).done(function(data){
+    window.location.href = data.redirect;
+  });
+};
+
+Game.prototype.toJson = function() {
+  return {
+    time: this.gameTime,
+    winner: this.winner.toJson(),
+    loser: this.loser.toJson()
+  };
+};
+
+
+Game.prototype.headLine = function() {
+  return "" + this.player1.name+" vs. "+this.player2.name;
+};
+
+Game.prototype.start = function() {
+  this.startTime = new Date().getTime();
+};
+
+Game.prototype.handleInput = function(keyCode) {
+  if (this.winner()) {
+    this.finish();
+    return;
+  }
+
+  if (keyCode === "Q".charCodeAt(0)){
+    this.player1.advance();
+  } else if (keyCode === "P".charCodeAt(0)){
+    this.player2.advance();
   }
 };
 
-Game.prototype.winner = function(player) {
 
-};
-
-
-
-Game.prototype.renderBoard = function(player1Name, player2Name) {
-  $('#login').slideUp("slow");
-  $('.race_track').find('h1').text(""+player1Name+" vs. "+player2Name+"");
-
-  setTimeout(function() {
-    $('.race_track').slideDown("slow");
-  }, 1500);
-
-};
-
-
-
+// Race setup and "keyboard input" listener //
 
 $(document).ready(function() {
-  var player1, player2, game;
+  var game;
 
   $('.race_track').hide();
 
@@ -60,105 +117,37 @@ $(document).ready(function() {
       data: playerNames
     }).done(function(data){
 
-      player1 = new Player(data.player1, '#player1_strip');
-      player2 = new Player(data.player2, '#player2_strip');
-      game    = new Game(player1, player2);
+      var player1 = new Player(data.player1, '.player1_strip');
+      var player2 = new Player(data.player2, '.player2_strip');
+      game = new Game(player1, player2);
 
-      game.renderBoard(player1.name, player2.name);
+      showBoard();
+      $(document).on('keyup', handleGameInput);   // to prevent console errors if user presses key beofre ajax call is complete
+      $(document).on('keyup', startGame);
+
+      $(game).on('gameOver', function() {
+        $(document).off("keyup", handleGameInput);
+      });
     });
   });
 
 
-  $(document).on('keyup', function(e){
-    if      (e.keyCode === "Q".charCodeAt(0)){
-      game.advance(player1);
-    }
-    else if (e.keyCode === "P".charCodeAt(0)){
-      game.advance(player2);
-    }
-  });
+  function showBoard() {
+    $('#login').slideUp("slow");
+    $('.race_track').find('h1').text(game.headLine());
 
+    setTimeout(function() {
+      $('.race_track').slideDown("slow");
+    }, 1500);
+  }
 
+  function startGame() {
+    game.start();
+    $(document).off('keyup', startGame);
+  }
+
+  function handleGameInput(e) {
+    game.handleInput(e.keyCode);
+  }
 });
 
-
-
-
-
-
-
-//////////// STUFF FROM JS Racer 2 is below!!!! /////////////////////
-
-
-// $(document).ready(function() {
-//   $(".race_track").hide();
-//   $("#hidden_time").hide();
-//   // var player1Position = 1;
-//   // var player2Position = 1;
-
-//   function GameOver(winner, loser, time) {
-//     console.log(winner, time);
-//     $.ajax({
-//       url: '/endgame',
-//       type: 'post',
-//       data: {winner: winner, loser: loser, gametime: time},
-//       dataType: "json"
-//     });
-//   }
-
-
-
-//   $(this).on("keyup", function(e){
-
-//     if (player1Position === 1 && player2Position === 1) {
-//       startTime = new Date().getTime();
-//     }
-
-
-//     if (e.keyCode === 81) {
-//       if (player2Position === 20) {}
-//       else if (player1Position < 19) {
-//         player1Position++;
-//         $(".player1_strip").find("td").removeClass("active");
-//         $(".player1_strip").find("td:nth-child("+player1Position+")").addClass("active");
-//       }
-//       else {
-//         // winner
-//         player1Position++;
-//         $(".player1_strip").find("td").removeClass("active");
-//         $(".player1_strip").find("td:nth-child("+player1Position+")").addClass("active");
-//         $(this).off("keyup");
-//         endTime = new Date().getTime();
-//         winner = $(".player1_strip").attr("value");
-//         loser = $(".player2_strip").attr("value");
-//         $("#hidden_name").text("Player 1 Wins!").show();
-//         $("#hidden_time").text("Game Time: "+(endTime - startTime)+"").show();
-//         GameOver(winner, loser, (endTime - startTime));
-//       }
-
-//     }
-
-//     else if (e.keyCode === 80){
-//       //advance player 2
-//       if (player1Position === 20) {}
-//       else if (player2Position < 19) {
-//         player2Position++;
-//         $(".player2_strip").find("td").removeClass("active");
-//         $(".player2_strip").find("td:nth-child("+player2Position+")").addClass("active");
-//       }
-//       else {
-//         // winner
-//         player2Position++;
-//         $(".player2_strip").find("td").removeClass("active");
-//         $(".player2_strip").find("td:nth-child("+player2Position+")").addClass("active");
-//         $(this).off("keyup");
-//         endTime = new Date().getTime();
-//         winner = $(".player2_strip").attr("value");
-//         loser = $(".player1_strip").attr("value");
-//         $("#hidden_name").text("Player 2 Wins!").show();
-//         $("#hidden_time").text("Game Time: "+(endTime - startTime)+"").show();
-//         GameOver(winner, loser, (endTime - startTime));
-//       }
-//     }
-//   });
-// });

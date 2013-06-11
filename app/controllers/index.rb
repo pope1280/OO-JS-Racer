@@ -13,11 +13,13 @@ end
 
 post '/endgame' do
   content_type :json
-
-  winner = Player.find_by_name(params[:winner])
-  loser = Player.find_by_name(params[:loser])
+  
+  winner = Player.find_by_name(params[:winner][:name])
+  loser = Player.find_by_name(params[:loser][:name])
   game = Game.create(time: params[:gametime], winner_id: winner.id)
 
   game.players << winner
   game.players << loser
+
+  { redirect: '/' }.to_json
 end
