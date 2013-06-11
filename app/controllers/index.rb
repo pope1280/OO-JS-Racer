@@ -2,11 +2,13 @@ get '/' do
   erb :index
 end
 
-post '/' do
-  p params
-  @player1 = Player.find_or_create_by_name(name: params[:player1])
-  @player2 = Player.find_or_create_by_name(name: params[:player2])
-  erb :game
+post '/play' do
+  content_type :json
+
+  player1 = Player.find_or_create_by_name(params[:player1])
+  player2 = Player.find_or_create_by_name(params[:player2])
+
+  {player1: player1.name, player2: player2.name}.to_json
 end
 
 post '/endgame' do

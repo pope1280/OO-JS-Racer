@@ -1,8 +1,71 @@
-<h2>New Game</h2>
+<div class='container'>
 
-<form action="/" method="post">
-    <input type="text" name="player1" placeholder="Player 1 Name">
-    <input type="text" name="player2" placeholder="Player 2 Name">
+  <h2>JS Racer!</h2>
+
+  <form id='login' action='/play' method='post'>
+    <input id='p1name' type="text" name="player1" placeholder="Player 1 Name">
+    <input id='p2name' type="text" name="player2" placeholder="Player 2 Name">
     <input type="submit" value="Play!">
-</form>
+  </form>
+
+
+
+  <div class='race_track'>
+    
+    <h1></h1>  
+    
+    <table class="racer_table">
+      <tr class="player1_strip" value="<%#=@player1.name%>">
+        <td class="active"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+
+      <tr class="player2_strip" value="<%#=@player2.name%>">
+        <td class="active"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+    </table>
+
+    <text id="hidden_name">Hidden Text</text>
+    <text id="hidden_time">Hidden Text</text>
+
+  </div>
+
+</div>
 
