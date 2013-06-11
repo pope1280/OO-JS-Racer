@@ -1,3 +1,22 @@
+function Player(name) {
+}
+
+
+function Game() {
+}
+
+
+
+
+
+
+
+
+
+
+//////////// STUFF FROM JS Racer 2 is below!!!! /////////////////////
+
+
 $(document).ready(function() {
   $("#hidden_name").hide();
   $("#hidden_time").hide();
